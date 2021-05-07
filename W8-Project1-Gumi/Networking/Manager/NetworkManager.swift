@@ -11,8 +11,8 @@ struct NetworkManager {
     static let environment: NetworkEnvironment = .production
     static var MovieAPIKey = "" // your TMDB key
     private let router = Router<MovieApi>()
-    
-    func getNewMovies(page: Int, completion: @escaping (_ movie: [Movie]?,_ error: String?)->()){
+   
+    func getNewMovies(page: Int, completion: @escaping (_ movie: [Movie]?,_ error: String?)->()) {
         router.request(.newMovies(page: page)) { data, response, error in
             
             if error != nil {
@@ -49,6 +49,18 @@ struct NetworkManager {
         switch response.statusCode {
         case 200...299:
             return .success
+        case 400:
+            return .failure(NetworkResponse.badRequest.rawValue)
+        case 401:
+            return .failure(NetworkResponse.authenticationError.rawValue)
+        case 403:
+            return .failure(NetworkResponse.forbidden.rawValue)
+        case 404:
+            return .failure(NetworkResponse.notFound.rawValue)
+        case 408:
+            return .failure(NetworkResponse.timeOut.rawValue)
+        case 410:
+            return .failure(NetworkResponse.gone.rawValue)
         case 401...500:
             return .failure(NetworkResponse.authenticationError.rawValue)
         case 501...599:
@@ -59,17 +71,19 @@ struct NetworkManager {
             return .failure(NetworkResponse.failed.rawValue)
         }
     }
-
 }
 
 enum NetworkResponse: String {
-    case success
     case authenticationError = "You need to be authenticated first."
     case badRequest = "Bad request."
     case outdated = "The url request is outdated."
     case failed = "Network request failed."
     case noData = "Response returned with no data to decode."
     case unableToDecode = "We could not decode the response."
+    case forbidden = "Fobidden."
+    case notFound = "Not found."
+    case timeOut = "Request timeout."
+    case gone = "Resource is no longer available."
 }
 
 enum Result<String> {
